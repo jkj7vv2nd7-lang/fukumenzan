@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>覆面算パズル ― 文字に数字を当てはめよう</title>
+<meta name="description" content="SEND + MORE = MONEY など、文字に0〜9の数字を当てはめる覆面算（ふくめんざん）を、段階ヒントつきで解いて遊べるアプリ。印刷用ワークシートつき。">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="覆面算パズル">
+<meta name="theme-color" content="#2b2a6e">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html { font-size:16px;}
+body {
+font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+background:#1d1c4e; color:#26241f; min-height:100vh;
+background-image:radial-gradient(circle at 15% 10%, #3d3a9e 0, transparent 45%),
+radial-gradient(circle at 85% 90%, #5a2d82 0, transparent 45%);
+}
+button { font-family:inherit; cursor:pointer; border:none; background:none;}
+.wrap { max-width:760px; margin:0 auto; padding:14px 14px 48px;}
+
+/* ===== タイトル画面 ===== */
+#screen-title { position:relative;}
+.hero { text-align:center; padding:26px 8px 6px; color:#fff; position:relative;}
+.hero.mag { font-size:3.2rem; display:inline-block; animation:bob 3s ease-in-out infinite;}
+@keyframes bob { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-9px) rotate(6deg)}}
+.hero h1 { font-size:2.35rem; letter-spacing:.14em; text-shadow:0 3px 0 #141338, 0 6px 18px rgba(0,0,0,.45);}
+.hero h1.gold { color:#f5c542;}
+.hero p.sub { margin-top:8px; font-size:.98rem; opacity:.92; line-height:1.7;}
+.float-chips { position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+.float-chips span {
+position:absolute; font-weight:900; color:rgba(255,255,255,.14); font-size:1.7rem;
+animation:drift 9s ease-in-out infinite;
+}
+@keyframes drift { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-16px) rotate(10deg)}}
+.sample-eq {
+margin:16px auto 4px; display:inline-block; background:#fdf6d8; color:#26241f;
+border-radius:14px; padding:10px 22px; font-weight:900; letter-spacing:.22em;
+font-size:1.25rem; box-shadow:0 6px 0 #b98a1e, 0 12px 24px rgba(0,0,0,.35);
+}
+.sample-eq small { display:block; letter-spacing:.05em; font-size:.72rem; color:#8a6d1c; margin-top:4px; font-weight:700;}
+.rules {
+background:rgba(255,255,255,.96); border-radius:16px; padding:14px 18px; margin:18px 2px 4px;
+font-size:.9rem; line-height:1.85; box-shadow:0 4px 14px rgba(0,0,0,.25);
+}
+.rules b { color:#6a3fb5;}
+.level-head { color:#fff; margin:22px 4px 10px; font-size:1.12rem; letter-spacing:.06em; display:flex; align-items:center; gap:8px;}
+.level-head.stars { color:#f5c542; font-size:.95rem;}
+.level-head.cnt { margin-left:auto; font-size:.8rem; opacity:.85;}
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:10px;}
+.pcard {
+background:#fffdf4; border-radius:14px; padding:13px 14px 11px; text-align:left; width:100%;
+box-shadow:0 4px 0 #cbbd8a, 0 8px 16px rgba(0,0,0,.28); transition:transform.08s;
+border:2px solid #e8dcb0; position:relative;
+}
+.pcard:active { transform:scale(.975);}
+.pcard.ttl { font-weight:900; font-size:1.06rem; letter-spacing:.14em; color:#33308f;}
+.pcard.meta { margin-top:5px; font-size:.76rem; color:#7a735f; display:flex; gap:8px; align-items:center;}
+.badge {
+margin-left:auto; font-size:.72rem; font-weight:900; border-radius:999px; padding:2px 9px;
+}
+.badge.done { background:#2e9e5b; color:#fff;}
+.badge.seen { background:#e8e2cf; color:#8a7f5c;}
+.title-actions { margin:26px 2px 0; display:flex; gap:10px; flex-wrap:wrap;}
+.big-btn {
+flex:1; min-width:200px; background:#f5c542; color:#3a2c00; font-weight:900; font-size:1rem;
+border-radius:14px; padding:14px 12px; box-shadow:0 5px 0 #b98a1e;
+}
+.big-btn:active { transform:translateY(3px); box-shadow:0 2px 0 #b98a1e;}
+.foot-note { color:rgba(255,255,255,.65); font-size:.75rem; text-align:center; margin-top:22px; line-height:1.8;}
+
+/* ===== プレイ画面 ===== */
+#screen-play { display:none;}
+.play-top { display:flex; align-items:center; gap:10px; margin:6px 2px 12px; color:#fff;}
+.back-btn { background:rgba(255,255,255,.16); color:#fff; border-radius:10px; padding:9px 14px; font-weight:900; font-size:.9rem;}
+.play-top.pt { font-weight:900; font-size:1.05rem; letter-spacing:.1em;}
+.play-top.lv { font-size:.75rem; background:#f5c542; color:#3a2c00; border-radius:999px; padding:2px 10px; font-weight:900;}
+.paper {
+background:#fffdf4; border-radius:18px; padding:20px 16px 16px; box-shadow:0 8px 24px rgba(0,0,0,.35);
+border:2px solid #e8dcb0;
+}
+.uniq { text-align:right; font-size:.76rem; color:#8a7f5c; font-weight:700;}
+.eq { margin:8px auto 2px; width:fit-content; max-width:100%;}
+.eq-row { display:flex; align-items:flex-end; justify-content:flex-end; gap:5px;}
+.eq-row.op { font-size:1.5rem; font-weight:900; color:#6a3fb5; width:1.2em; text-align:center; padding-bottom:14px;}
+.eq-row.spacer { width:1.2em;}
+.cell {
+width:52px; text-align:center; border-radius:10px; padding:5px 0 4px; cursor:pointer;
+border:2px solid transparent; transition:background.1s, border-color.1s;
+}
+.cell.d { font-size:1.62rem; font-weight:900; line-height:1.15; color:#26241f; min-height:1.15em; font-family:"Hiragino Sans","Noto Sans JP",sans-serif;}
+.cell.d.empty { color:#c9c2a8;}
+.cell.l { font-size:.86rem; font-weight:900; color:#6a3fb5; letter-spacing:.05em; border-top:2px solid #e8dcb0; margin:2px 6px 0; padding-top:2px;}
+.cell.sel { background:#fdf0bd; border-color:#f5c542;}
+.cell.hinted.d { color:#2e7d9e;}
+.cell.flash { animation:flash.6s;}
+@keyframes flash { 0%{background:#b7f0c8} 100%{background:transparent}}
+.eq-line { border-top:3.5px solid #26241f; margin:7px 0 7px auto;}
+.calc-bar {
+margin-top:12px; background:#f2ecd4; border-radius:10px; padding:9px 12px; font-size:.92rem;
+font-weight:700; color:#4d4630; text-align:center; line-height:1.6; word-break:break-all;
+}
+.calc-bar.tot { color:#33308f; font-weight:900;}
+.msg { min-height:1.7em; text-align:center; font-weight:900; margin-top:10px; font-size:1rem;}
+.msg.ok { color:#2e9e5b;}.msg.ng { color:#d33f2e;}.msg.info { color:#6a3fb5;}
+.pad { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px;}
+.pad button {
+background:#fff; border:2.5px solid #d8cf9f; border-radius:13px; font-size:1.4rem; font-weight:900;
+padding:11px 0 9px; box-shadow:0 3px 0 #d8cf9f; color:#26241f; position:relative;
+}
+.pad button:active { transform:translateY(2px); box-shadow:0 1px 0 #d8cf9f;}
+.pad button:disabled { opacity:.32; box-shadow:none; transform:none;}
+.pad button.who { position:absolute; top:2px; right:6px; font-size:.62rem; color:#6a3fb5; font-weight:900;}
+.pad button.erase { font-size:1rem; color:#d33f2e; border-color:#eec5bd; box-shadow:0 3px 0 #eec5bd; grid-column:span 1;}
+.pad button.cur { background:#fdf0bd; border-color:#f5c542;}
+.actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+.actions button { flex:1; min-width:100px; border-radius:12px; padding:12px 6px; font-weight:900; font-size:.95rem;}
+.btn-check { background:#2e9e5b; color:#fff; box-shadow:0 4px 0 #1e6e3e;}
+.btn-check:active { transform:translateY(3px); box-shadow:0 1px 0 #1e6e3e;}
+.btn-sub { background:#fff; color:#4d4630; border:2px solid #d8cf9f; box-shadow:0 3px 0 #d8cf9f;}
+.btn-sub:active { transform:translateY(2px); box-shadow:0 1px 0 #d8cf9f;}
+.btn-sub:disabled { opacity:.45; box-shadow:none;}
+.hint-area { margin-top:16px;}
+.hint-item {
+background:#eef7ff; border:2px solid #bcd9f5; border-radius:12px; padding:10px 13px;
+font-size:.9rem; line-height:1.75; margin-top:8px; color:#23405c;
+}
+.hint-item b { color:#2e7d9e;}
+.answer-box {
+display:none; margin-top:14px; background:#eafaf0; border:2px solid #9adbb2; border-radius:12px;
+padding:12px 14px; text-align:center; line-height:1.8;
+}
+.answer-box.ae { font-size:1.3rem; font-weight:900; color:#1e6e3e; letter-spacing:.08em;}
+.answer-box.am { font-size:.82rem; color:#3c6b4d; word-break:break-all;}
+
+/* ===== ワークシートモーダル ===== */
+#ws-modal { display:none; position:fixed; inset:0; background:rgba(10,10,40,.82); z-index:60; overflow:auto; padding:18px 12px 40px;}
+.ws-box { max-width:680px; margin:0 auto; background:#fff; border-radius:16px; padding:18px 16px;}
+.ws-box h2 { font-size:1.1rem; margin-bottom:6px;}
+.ws-box p { font-size:.85rem; line-height:1.8; color:#4d4630;}
+.ws-box img { width:100%; border:1px solid #ccc; border-radius:6px; margin-top:12px;}
+.ws-btns { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+.ws-btns button { flex:1; min-width:140px; border-radius:12px; padding:13px 8px; font-weight:900;}
+#confetti { position:fixed; inset:0; pointer-events:none; z-index:80; display:none;}
+@media (max-width:520px) {
+.cell { width:44px;}.cell.d { font-size:1.35rem;}
+.hero h1 { font-size:1.9rem;}.sample-eq { font-size:1.05rem;}
+}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+<!-- ============ タイトル画面 ============ -->
+<section id="screen-title">
+<div class="hero">
+<div class="float-chips" id="float-chips"></div>
+<div class="mag">🔍</div>
+<h1>覆面算<span class="gold">パズル</span></h1>
+<p class="sub">文字に 0〜9 の数字を当てはめる、計算パズルの探偵ゲーム。<br>式が成り立つ数字の組み合わせを見つけ出そう！</p>
+<div class="sample-eq">SEND + MORE = MONEY<small>いちばん有名な覆面算。答えは 9567 + 1085 = 10652</small></div>
+</div>
+<div class="rules">
+<b>あそびかた</b>　・同じ文字には同じ数字、ちがう文字にはちがう数字が入ります。・いちばん先頭の文字には 0 は入りません。・文字をタップして、数字パッドから数字を入れてください。「答え合わせ」で式が成り立つか確かめられます。・困ったら段階ヒント。ヒントを全部開くと「答えを見る」も使えます。
+</div>
+<div id="level-sections"></div>
+<div class="title-actions">
+<button class="big-btn" id="btn-worksheet">🖨 ワークシートを印刷する（A4）</button>
+</div>
+<p class="foot-note">収録した問題は、すべてコンピューターで全探索して「解けること」と解の個数を確かめたものだけです。</p>
+</section>
+
+<!-- ============ プレイ画面 ============ -->
+<section id="screen-play">
+<div class="play-top">
+<button class="back-btn" id="btn-back">← もどる</button>
+<span class="pt" id="play-title"></span>
+<span class="lv" id="play-level"></span>
+</div>
+<div class="paper">
+<div class="uniq" id="play-uniq"></div>
+<div class="eq" id="eq"></div>
+<div class="calc-bar" id="calc-bar"></div>
+<div class="msg" id="msg"></div>
+<div class="pad" id="pad"></div>
+<div class="actions">
+<button class="btn-check" id="btn-check">✔ 答え合わせ</button>
+<button class="btn-sub" id="btn-hint">💡 ヒント</button>
+<button class="btn-sub" id="btn-reset">↺ リセット</button>
+</div>
+<div class="actions">
+<button class="btn-sub" id="btn-answer" disabled>答えを見る（ヒントを全部開くと押せます）</button>
+</div>
+<div class="hint-area" id="hint-area"></div>
+<div class="answer-box" id="answer-box">
+<div class="ae" id="answer-eq"></div>
+<div class="am" id="answer-map"></div>
+</div>
+</div>
+<div class="title-actions">
+<button class="big-btn" id="btn-worksheet2">🖨 ワークシートを印刷する（A4）</button>
+</div>
+</section>
+</div>
+
+<!-- ============ ワークシートモーダル ============ -->
+<div id="ws-modal">
+<div class="ws-box">
+<h2>🖨 覆面算ワークシート（A4）</h2>
+<p id="ws-desc">ワークシートを作っています…</p>
+<div id="ws-pages"></div>
+<div class="ws-btns">
+<button class="btn-check" id="btn-ws-share">📤 PDFを共有／印刷</button>
+<button class="btn-sub" id="btn-ws-print">🖨 パソコンで印刷</button>
+<button class="btn-sub" id="btn-ws-close">とじる</button>
+</div>
+<p style="margin-top:10px">iPhoneでは「PDFを共有／印刷」から〈プリント〉を選ぶと印刷できます。画像を長押しして保存することでも使えます。カードは点線で切り取って配れます。答えは最後のページにまとめてあります。</p>
+</div>
+</div>
+
+<script>
+"use strict";
+/* ================= 問題データ（全問ソルバーで検証済み・解は各1通り） ================= */
+const PUZZLES = [
+{ id:"i-bb", level:"入門", title:"I + BB = ILL", op:"add", terms:["I","BB"], result:"ILL",
+sol:{I:1,B:9,L:0},
+hints:[
+{t:"text", text:"答えは3けた。いちばん上の位の <b>I</b> は、足し算で出た「繰り上がり」の数だよ。"},
+{t:"rev", letter:"I"},
+{t:"rev", letter:"B"}
+]},
+{ id:"no-too", level:"入門", title:"NO + NO = TOO", op:"add", terms:["NO","NO"], result:"TOO",
+sol:{N:5,O:0,T:1},
+hints:[
+{t:"text", text:"2けた＋2けた＝3けた。いちばん上の <b>T</b> は繰り上がりの数だよ。一の位の O＋O の一の位が O になることにも注目してね。"},
+{t:"rev", letter:"T"},
+{t:"rev", letter:"O"}
+]},
+{ id:"ab-cac", level:"入門", title:"AB + BA = CAC", op:"add", terms:["AB","BA"], result:"CAC",
+sol:{A:2,B:9,C:1},
+hints:[
+{t:"text", text:"AB＋BA は (A＋B)×11 と同じこと。A＋B は最大でも 9＋8＝17 だから、答えの CAC は 200 より小さくなるよ。まず <b>C</b> から決めよう。"},
+{t:"rev", letter:"C"},
+{t:"rev", letter:"B"}
+]},
+{ id:"eat-apple", level:"ふつう", title:"EAT + THAT = APPLE", op:"add", terms:["EAT","THAT"], result:"APPLE",
+sol:{E:8,A:1,T:9,H:2,P:0,L:3},
+hints:[
+{t:"text", text:"答えの先頭 <b>A</b> は繰り上がりの数だよ。千の位では T に繰り上がりを足したものが P になる。T は大きな数のはずだね。"},
+{t:"rev", letter:"A"},
+{t:"rev", letter:"P"},
+{t:"rev", letter:"T"}
+]},
+{ id:"abcd4", level:"ふつう", title:"ABCD × 4 = DCBA", op:"mul", word:"ABCD", k:4, result:"DCBA",
+sol:{A:2,B:1,C:7,D:8},
+hints:[
+{t:"text", text:"A×4 でも5けたにならないから、A は 1 か 2。一の位を見ると D×4 の一の位が A だから、A は偶数だよ。"},
+{t:"rev", letter:"A"},
+{t:"rev", letter:"D"}
+]},
+{ id:"base-games", level:"ふつう", title:"BASE + BALL = GAMES", op:"add", terms:["BASE","BALL"], result:"GAMES",
+sol:{B:7,A:4,S:8,E:3,L:5,M:9,G:1},
+hints:[
+{t:"text", text:"答えの先頭 <b>G</b> は繰り上がりの数だよ。千の位は A＋A＋（百の位からの繰り上がり）で決まる <b>M</b> にも注目してね。"},
+{t:"rev", letter:"G"},
+{t:"rev", letter:"B"},
+{t:"rev", letter:"M"}
+]},
+{ id:"send-money", level:"名作", title:"SEND + MORE = MONEY", op:"add", terms:["SEND","MORE"], result:"MONEY",
+sol:{S:9,E:5,N:6,D:7,M:1,O:0,R:8,Y:2},
+hints:[
+{t:"text", text:"覆面算の王様。<b>M</b> は繰り上がりの数だから、まず M が決まるよ。千の位は S＋M（＋繰り上がり）が O になるか、繰り上がって MO の形になるか。S の候補をしぼってみよう。"},
+{t:"rev", letter:"M"},
+{t:"rev", letter:"O"},
+{t:"rev", letter:"E"}
+]},
+{ id:"cross-danger", level:"名作", title:"CROSS + ROADS = DANGER", op:"add", terms:["CROSS","ROADS"], result:"DANGER",
+sol:{C:9,R:6,O:2,S:3,A:5,D:1,G:7,E:4,N:8},
+hints:[
+{t:"text", text:"答えの先頭 <b>D</b> は繰り上がりの数だよ。万の位は C＋R（＋繰り上がり）。D が繰り上がりで出ているということは、C＋R は 10 以上だね。"},
+{t:"rev", letter:"D"},
+{t:"rev", letter:"C"},
+{t:"rev", letter:"R"}
+]},
+{ id:"forty-sixty", level:"名作", title:"FORTY + TEN + TEN = SIXTY", op:"add", terms:["FORTY","TEN","TEN"], result:"SIXTY",
+sol:{F:2,O:9,R:7,T:8,Y:6,E:5,N:0,I:1,S:3,X:4},
+hints:[
+{t:"text", text:"一の位を見て。Y＋N＋N の一の位が Y にもどっているね。つまり <b>N＋N</b> は 10 の倍数だよ。"},
+{t:"rev", letter:"N"},
+{t:"rev", letter:"I"},
+{t:"rev", letter:"T"}
+]},
+{ id:"donald-robert", level:"名作", title:"DONALD + GERALD = ROBERT", op:"add", terms:["DONALD","GERALD"], result:"ROBERT",
+sol:{D:5,O:2,N:6,A:4,L:8,G:1,E:9,R:7,B:3,T:0},
+hints:[
+{t:"text", text:"ドナルド・ジェラルドは作者ドナルド・クヌース…ではなく、J. A. H. Hunter の名作。一の位は D＋D＝T。つまり <b>T は偶数</b> だよ。十万の位の D＋G（＋繰り上がり）にも注目してね。"},
+{t:"rev", letter:"D"},
+{t:"rev", letter:"T"},
+{t:"rev", letter:"E"}
+]}
+];
+const LEVELS = ["入門","ふつう","名作"];
+const LEVEL_STARS = {"入門":"★","ふつう":"★★","名作":"★★★"};
+
+/* ================= 記録 ================= */
+const LS_KEY = "fukumenzan_v1";
+function loadRec(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || {};} catch(e){ return {};}}
+function saveRec(r){ try { localStorage.setItem(LS_KEY, JSON.stringify(r));} catch(e){}}
+
+/* ================= 音（Web Audio合成） ================= */
+let AC = null, masterGain = null;
+function ensureAudio(){
+if (!AC){
+try {
+AC = new (window.AudioContext || window.webkitAudioContext)();
+masterGain = AC.createGain(); masterGain.gain.value = 0.5; masterGain.connect(AC.destination);
+} catch(e){ AC = null;}
+}
+if (AC && AC.state === "suspended") AC.resume();
+}
+function tone(freq, dur, type, vol, delay){
+if (!AC) return;
+const t = AC.currentTime + (delay || 0);
+const o = AC.createOscillator(), g = AC.createGain();
+o.type = type || "sine"; o.frequency.value = freq;
+g.gain.setValueAtTime(vol || 0.18, t);
+g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+o.connect(g); g.connect(masterGain);
+o.start(t); o.stop(t + dur + 0.02);
+}
+const sndTap = () => { tone(660, 0.07, "sine", 0.12);};
+const sndErase = () => { tone(330, 0.08, "sine", 0.10);};
+const sndHint = () => { tone(523.25, 0.12, "sine", 0.14); tone(783.99, 0.16, "sine", 0.14, 0.1);};
+const sndBad = () => { tone(160, 0.22, "square", 0.10); tone(120, 0.28, "square", 0.10, 0.12);};
+const sndFanfare = () => { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.34, "triangle", 0.22, i * 0.13)); tone(1318.5, 0.5, "triangle", 0.18, 0.55);};
+
+/* ================= 紙吹雪 ================= */
+function confetti(){
+const cv = document.getElementById("confetti"), ctx = cv.getContext("2d");
+cv.width = innerWidth; cv.height = innerHeight; cv.style.display = "block";
+const cols = ["#f5c542","#e74c3c","#2e9e5b","#3d7bd9","#9b59b6","#ff8c42"];
+const ps = [];
+for (let i = 0; i < 130; i++){
+ps.push({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.4,
+w: 6 + Math.random() * 7, h: 8 + Math.random() * 9, c: cols[i % cols.length],
+vy: 2.2 + Math.random() * 3.2, vx: -1 + Math.random() * 2, r: Math.random() * Math.PI, vr: -0.12 + Math.random() * 0.24});
+}
+const t0 = performance.now();
+(function frame(now){
+const el = now - t0;
+ctx.clearRect(0, 0, cv.width, cv.height);
+ps.forEach(p => {
+p.y += p.vy; p.x += p.vx + Math.sin(el / 300 + p.r) * 0.6; p.r += p.vr;
+ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+});
+if (el < 2600) requestAnimationFrame(frame);
+else { ctx.clearRect(0, 0, cv.width, cv.height); cv.style.display = "none";}
+})(t0);
+}
+
+/* ================= 画面遷移 ================= */
+const $ = id => document.getElementById(id);
+function showTitle(){
+$("screen-play").style.display = "none";
+$("screen-title").style.display = "block";
+renderTitle();
+window.scrollTo(0, 0);
+}
+function renderTitle(){
+// 背景の浮遊文字
+const fc = $("float-chips");
+if (!fc.dataset.done){
+fc.dataset.done = "1";
+const chars = ["S","E","N","D","M","O","R","Y","7","9","1","0","+"];
+chars.forEach((c, i) => {
+const s = document.createElement("span");
+s.textContent = c;
+s.style.left = (4 + (i * 7.3) % 92) + "%";
+s.style.top = (6 + (i * 23) % 82) + "%";
+s.style.animationDelay = (i * 0.55) + "s";
+fc.appendChild(s);
+});
+}
+const rec = loadRec();
+const host = $("level-sections");
+host.innerHTML = "";
+LEVELS.forEach(lv => {
+const list = PUZZLES.filter(p => p.level === lv);
+const done = list.filter(p => rec[p.id]).length;
+const head = document.createElement("div");
+head.className = "level-head";
+head.innerHTML = `<span>${lv}</span><span class="stars">${LEVEL_STARS[lv]}</span><span class="cnt">${done} / ${list.length} 解決</span>`;
+host.appendChild(head);
+const grid = document.createElement("div");
+grid.className = "cards";
+list.forEach(p => {
+const b = document.createElement("button");
+b.className = "pcard";
+const letters = new Set((p.op === "mul"? p.word + p.result: p.terms.join("") + p.result)).size;
+let badge = "";
+if (rec[p.id] === "solved") badge = `<span class="badge done">✓ 解決！</span>`;
+else if (rec[p.id] === "revealed") badge = `<span class="badge seen">答えを見た</span>`;
+b.innerHTML = `<div class="ttl">${p.title}</div><div class="meta"><span>文字 ${letters} 種類</span><span>答えは1通り</span>${badge}</div>`;
+b.addEventListener("click", () => { ensureAudio(); openPuzzle(p.id);});
+grid.appendChild(b);
+});
+host.appendChild(grid);
+});
+}
+
+/* ================= プレイ ================= */
+let cur = null; // {p, assign:{}, selected, hintsOpen, finished}
+function puzzleLetters(p){
+const s = new Set();
+const words = p.op === "mul"? [p.word, p.result]: [...p.terms, p.result];
+words.forEach(w => { for (const ch of w) s.add(ch);});
+return [...s];
+}
+function leadingLetters(p){
+const s = new Set();
+const words = p.op === "mul"? [p.word, p.result]: [...p.terms, p.result];
+words.forEach(w => s.add(w[0]));
+return s;
+}
+function openPuzzle(id){
+const p = PUZZLES.find(x => x.id === id);
+cur = { p, assign: {}, selected: null, hintsOpen: 0, finished: false, hintedLetters: new Set()};
+$("screen-title").style.display = "none";
+$("screen-play").style.display = "block";
+$("play-title").textContent = p.title;
+$("play-level").textContent = p.level;
+$("play-uniq").textContent = "答えは1通りだけです";
+$("answer-box").style.display = "none";
+$("hint-area").innerHTML = "";
+setMsg("", "");
+const letters = puzzleLetters(p);
+cur.selected = letters[0];
+renderPlay();
+window.scrollTo(0, 0);
+}
+function wordVal(w){
+let v = 0;
+for (const ch of w){
+if (cur.assign[ch] == null) return null;
+v = v * 10 + cur.assign[ch];
+}
+return v;
+}
+function wordShown(w){
+return [...w].map(ch => cur.assign[ch] == null? "？": String(cur.assign[ch])).join("");
+}
+function renderPlay(){
+renderEq(); renderPad(); renderCalc(); renderHintBtn();
+}
+function cellHTML(ch){
+const d = cur.assign[ch];
+const cls = ["cell"];
+if (cur.selected === ch) cls.push("sel");
+if (cur.hintedLetters.has(ch)) cls.push("hinted");
+return `<div class="${cls.join(" ")}" data-letter="${ch}"><div class="d ${d == null? "empty": ""}">${d == null? "?": d}</div><div class="l">${ch}</div></div>`;
+}
+function renderEq(){
+const p = cur.p, host = $("eq");
+let rows = "";
+const rowOf = (w, op) => {
+const cells = [...w].map(cellHTML).join("");
+const opHtml = op? `<div class="op">${op}</div>`: `<div class="spacer"></div>`;
+return `<div class="eq-row">${opHtml}${cells}</div>`;
+};
+if (p.op === "mul"){
+rows += rowOf(p.word, "");
+const kCells = [...String(p.k)].map(dg =>
+`<div class="cell" style="cursor:default"><div class="d">${dg}</div><div class="l">&nbsp;</div></div>`).join("");
+rows += `<div class="eq-row"><div class="op">×</div>${kCells}</div>`;
+} else {
+p.terms.forEach((w, i) => { rows += rowOf(w, i === 0? "": "+");});
+}
+// 結果行の幅に合わせた線
+const unit = 57; // cell 52 + gap 5 の概算（線の長さ用）
+const resLen = p.result.length * unit + 34;
+rows += `<div class="eq-line" style="width:${resLen}px"></div>`;
+rows += rowOf(p.result, "");
+host.innerHTML = rows;
+host.querySelectorAll(".cell[data-letter]").forEach(el => {
+el.addEventListener("click", () => {
+ensureAudio();
+cur.selected = el.dataset.letter;
+sndTap();
+renderEq(); renderPad();
+});
+});
+}
+function usedBy(){
+const m = {};
+for (const [L, d] of Object.entries(cur.assign)) m[d] = L;
+return m;
+}
+function renderPad(){
+const pad = $("pad");
+const used = usedBy();
+const lead = leadingLetters(cur.p);
+let html = "";
+for (let d = 0; d <= 9; d++){
+const owner = used[d];
+const isCur = owner === cur.selected;
+const dis = (owner &&!isCur) || (d === 0 && lead.has(cur.selected));
+html += `<button data-digit="${d}" ${dis? "disabled": ""} class="${isCur? "cur": ""}">${d}${owner? `<span class="who">${owner}</span>`: ""}</button>`;
+}
+html += `<button class="erase" id="pad-erase">けす</button>`;
+pad.innerHTML = html;
+pad.querySelectorAll("button[data-digit]").forEach(b => {
+b.addEventListener("click", () => {
+ensureAudio();
+const d = Number(b.dataset.digit);
+if (!cur.selected) return;
+if (cur.assign[cur.selected] === d){ delete cur.assign[cur.selected]; sndErase();}
+else { cur.assign[cur.selected] = d; sndTap();}
+cur.finished = false;
+renderPlay();
+});
+});
+$("pad-erase").addEventListener("click", () => {
+ensureAudio();
+if (cur.selected && cur.assign[cur.selected]!= null){ delete cur.assign[cur.selected]; sndErase(); renderPlay();}
+});
+}
+function renderCalc(){
+const p = cur.p;
+let lhsTxt, lhsVal = null, rhsVal = wordVal(p.result);
+if (p.op === "mul"){
+lhsTxt = wordShown(p.word) + " × " + p.k;
+const wv = wordVal(p.word);
+lhsVal = wv == null? null: wv * p.k;
+} else {
+lhsTxt = p.terms.map(wordShown).join(" + ");
+const vals = p.terms.map(wordVal);
+lhsVal = vals.some(v => v == null)? null: vals.reduce((a, b) => a + b, 0);
+}
+let html = `いまの計算： <span class="tot">${lhsTxt}</span> ＝ <span class="tot">${wordShown(p.result)}</span>`;
+if (lhsVal!= null && rhsVal!= null){
+html += `<br>左の合計は <span class="tot">${lhsVal}</span>、右は <span class="tot">${rhsVal}</span>`;
+}
+$("calc-bar").innerHTML = html;
+}
+function setMsg(txt, kind){
+const m = $("msg");
+m.textContent = txt;
+m.className = "msg" + (kind? " " + kind: "");
+}
+function renderHintBtn(){
+const total = cur.p.hints.length;
+const b = $("btn-hint");
+if (cur.hintsOpen < total) b.textContent = `💡 ヒント（あと ${total - cur.hintsOpen} つ）`;
+else b.textContent = "💡 ヒントは全部開きました";
+b.disabled = cur.hintsOpen >= total;
+const ab = $("btn-answer");
+if (cur.hintsOpen >= total){
+ab.disabled = false;
+ab.textContent = "答えを見る";
+} else {
+ab.disabled = true;
+ab.textContent = `答えを見る（ヒントを全部開くと押せます）`;
+}
+}
+function openHint(){
+const p = cur.p;
+if (cur.hintsOpen >= p.hints.length) return;
+const h = p.hints[cur.hintsOpen];
+cur.hintsOpen++;
+ensureAudio(); sndHint();
+const div = document.createElement("div");
+div.className = "hint-item";
+if (h.t === "text"){
+div.innerHTML = `<b>ヒント${cur.hintsOpen}</b>　${h.text}`;
+} else {
+const L = h.letter, d = p.sol[L];
+// その数字を別の文字が使っていたら外す
+for (const [oL, oD] of Object.entries(cur.assign)) if (oD === d && oL!== L) delete cur.assign[oL];
+cur.assign[L] = d;
+cur.hintedLetters.add(L);
+div.innerHTML = `<b>ヒント${cur.hintsOpen}</b>　文字 <b>${L}</b> は <b>${d}</b> だよ。式に入れておいたよ。`;
+renderEq(); renderPad(); renderCalc();
+}
+$("hint-area").appendChild(div);
+renderHintBtn();
+}
+function showAnswer(revealed){
+const p = cur.p;
+const numEq = p.op === "mul"
+? `${wordValWith(p.word, p.sol)} × ${p.k} = ${wordValWith(p.result, p.sol)}`
+: `${p.terms.map(w => wordValWith(w, p.sol)).join(" + ")} = ${wordValWith(p.result, p.sol)}`;
+$("answer-eq").textContent = numEq;
+$("answer-map").textContent = Object.keys(p.sol).sort().map(L => `${L} = ${p.sol[L]}`).join("、");
+$("answer-box").style.display = "block";
+}
+function wordValWith(w, sol){ return [...w].map(ch => sol[ch]).join("");}
+function doCheck(){
+ensureAudio();
+const p = cur.p;
+const letters = puzzleLetters(p);
+if (letters.some(L => cur.assign[L] == null)){
+setMsg("まだ空いている文字があるよ。全部の文字に数字を入れてね。", "info");
+sndBad();
+return;
+}
+const lhs = p.op === "mul"? wordVal(p.word) * p.k: p.terms.map(wordVal).reduce((a, b) => a + b, 0);
+const rhs = wordVal(p.result);
+if (lhs === rhs){
+cur.finished = true;
+setMsg("🎉 せいかい！ 式が成り立ったよ。事件解決！", "ok");
+sndFanfare(); confetti();
+showAnswer(false);
+const rec = loadRec();
+if (rec[p.id]!== "solved"){ rec[p.id] = "solved"; saveRec(rec);}
+} else {
+setMsg(`ざんねん、まだ成り立っていないよ。左は ${lhs}、右は ${rhs} だね。`, "ng");
+sndBad();
+}
+}
+function viewAnswer(){
+if (cur.hintsOpen < cur.p.hints.length) return;
+if (!confirm("答えを見ますか？（この問題は「答えを見た」印がつきます）")) return;
+ensureAudio();
+cur.assign = {...cur.p.sol};
+cur.finished = true;
+showAnswer(true);
+setMsg("答えを表示しました。数字の当てはめ方を確かめてみてね。", "info");
+const rec = loadRec();
+if (rec[cur.p.id]!== "solved"){ rec[cur.p.id] = "revealed"; saveRec(rec);}
+renderPlay();
+}
+
+/* ================= ワークシート ================= */
+const A4W = 2480, A4H = 3508; // 300dpi
+let wsCache = null; // {pages:[dataURL], pdfBlob}
+function drawEqOnCanvas(ctx, p, x, y, cellW, cellH, digitBox){
+// 右寄せで式を描く。戻り値：使った高さ
+const drawWord = (w, op, yy) => {
+let xx = x;
+ctx.fillStyle = "#6a3fb5";
+ctx.font = `900 ${Math.round(cellH * 0.62)}px sans-serif`;
+ctx.textAlign = "center"; ctx.textBaseline = "middle";
+if (op) ctx.fillText(op, xx + cellW * 0.4, yy + cellH * (digitBox? 0.34: 0.5));
+xx += cellW * 0.9;
+for (const ch of w){
+ctx.fillStyle = "#26241f";
+ctx.font = `900 ${Math.round(cellH * 0.6)}px sans-serif`;
+ctx.fillText(ch, xx + cellW / 2, yy + cellH * 0.34);
+if (digitBox){
+ctx.strokeStyle = "#8a7f5c"; ctx.lineWidth = 3;
+ctx.strokeRect(xx + cellW * 0.16, yy + cellH * 0.62, cellW * 0.68, cellH * 0.52);
+}
+xx += cellW;
+}
+return xx;
+};
+let yy = y;
+const words = p.op === "mul"? [p.word]: p.terms;
+const totalW = Math.max(...words.map(w => w.length), p.result.length);
+const startX = x + (totalW - 0) * 0; // 右寄せ基準は呼び出し側
+words.forEach((w, i) => {
+const wx = x + (totalW - w.length) * cellW;
+drawWordAt(ctx, p, w, i === 0? "": (p.op === "mul"? "": "+"), wx, yy, cellW, cellH, digitBox);
+yy += cellH * (digitBox? 1.3: 1.12);
+});
+if (p.op === "mul"){
+const wx = x + (totalW - 1) * cellW;
+// × k 行
+ctx.fillStyle = "#6a3fb5";
+ctx.font = `900 ${Math.round(cellH * 0.62)}px sans-serif`;
+ctx.textAlign = "center"; ctx.textBaseline = "middle";
+ctx.fillText("×", x + cellW * 0.4, yy + cellH * 0.34);
+ctx.fillStyle = "#26241f";
+ctx.font = `900 ${Math.round(cellH * 0.6)}px sans-serif`;
+ctx.fillText(String(p.k), wx + cellW / 2, yy + cellH * 0.34);
+if (digitBox){
+ctx.strokeStyle = "#ddd3ab"; ctx.lineWidth = 2;
+ctx.strokeRect(wx + cellW * 0.16, yy + cellH * 0.62, cellW * 0.68, cellH * 0.52);
+}
+yy += cellH * (digitBox? 1.3: 1.12);
+}
+// 線
+ctx.strokeStyle = "#26241f"; ctx.lineWidth = 5;
+ctx.beginPath();
+ctx.moveTo(x - cellW * 0.1, yy + 4);
+ctx.lineTo(x + totalW * cellW + cellW * 0.9, yy + 4);
+ctx.stroke();
+yy += cellH * 0.28;
+const rx = x + (totalW - p.result.length) * cellW;
+drawWordAt(ctx, p, p.result, "", rx, yy, cellW, cellH, digitBox);
+yy += cellH * (digitBox? 1.3: 1.12);
+return yy - y;
+}
+function drawWordAt(ctx, p, w, op, x, y, cellW, cellH, digitBox){
+let xx = x;
+ctx.textAlign = "center"; ctx.textBaseline = "middle";
+if (op){
+ctx.fillStyle = "#6a3fb5";
+ctx.font = `900 ${Math.round(cellH * 0.62)}px sans-serif`;
+ctx.fillText(op, xx - cellW * 0.45, y + cellH * 0.34);
+}
+for (const ch of w){
+ctx.fillStyle = "#26241f";
+ctx.font = `900 ${Math.round(cellH * 0.6)}px sans-serif`;
+ctx.fillText(ch, xx + cellW / 2, y + cellH * 0.34);
+if (digitBox){
+ctx.strokeStyle = "#8a7f5c"; ctx.lineWidth = 3;
+ctx.strokeRect(xx + cellW * 0.16, y + cellH * 0.62, cellW * 0.68, cellH * 0.52);
+}
+xx += cellW;
+}
+}
+function buildWorksheetPages(){
+const pages = [];
+const perPage = 6;
+const cardPages = Math.ceil(PUZZLES.length / perPage);
+for (let pi = 0; pi < cardPages; pi++){
+const cv = document.createElement("canvas");
+cv.width = A4W; cv.height = A4H;
+const ctx = cv.getContext("2d");
+ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, A4W, A4H);
+// ヘッダー
+ctx.fillStyle = "#26241f"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+ctx.font = "900 74px sans-serif";
+ctx.fillText("覆面算パズル ワークシート", 130, 130);
+ctx.font = "700 52px sans-serif";
+ctx.fillText("なまえ：", 1330, 130);
+ctx.strokeStyle = "#26241f"; ctx.lineWidth = 3;
+ctx.beginPath(); ctx.moveTo(1620, 168); ctx.lineTo(2350, 168); ctx.stroke();
+ctx.font = "500 40px sans-serif"; ctx.fillStyle = "#666";
+ctx.fillText("同じ文字には同じ数字、ちがう文字にはちがう数字。先頭の文字は 0 にはならないよ。答えは1通りだけ。", 130, 225);
+// カード
+const subset = PUZZLES.slice(pi * perPage, (pi + 1) * perPage);
+const cols = 2, rows = 3;
+const mX = 110, gapX = 60, gapY = 55, topY = 300;
+const cardW = (A4W - mX * 2 - gapX) / cols;
+const cardH = (A4H - topY - 110 - gapY * (rows - 1)) / rows;
+subset.forEach((p, i) => {
+const cx = mX + (i % cols) * (cardW + gapX);
+const cy = topY + Math.floor(i / cols) * (cardH + gapY);
+// 切り取り線
+ctx.strokeStyle = "#999"; ctx.lineWidth = 3; ctx.setLineDash([16, 13]);
+ctx.strokeRect(cx, cy, cardW, cardH);
+ctx.setLineDash([]);
+ctx.fillStyle = "#555"; ctx.font = "52px sans-serif"; ctx.textAlign = "left";
+ctx.fillText("✂", cx + 8, cy - 42);
+// タイトル
+ctx.fillStyle = "#33308f";
+ctx.font = "900 54px sans-serif";
+ctx.fillText(`${p.level}　${p.title}`, cx + 42, cy + 66);
+// 式
+const words = p.op === "mul"? [p.word, p.result]: [...p.terms, p.result];
+const maxLen = Math.max(...words.map(w => w.length));
+const cellW = Math.min(120, (cardW - 190) / (maxLen + 1));
+const cellH = 118;
+const eqX = cx + cardW - 60 - maxLen * cellW;
+drawEqOnCanvas(ctx, p, eqX, cy + 130, cellW, cellH, true);
+// 考えメモ欄
+ctx.fillStyle = "#8a7f5c"; ctx.font = "500 36px sans-serif";
+ctx.fillText("考えたこと：", cx + 42, cy + cardH - 128);
+ctx.strokeStyle = "#ddd3ab"; ctx.lineWidth = 2;
+for (let ln = 0; ln < 2; ln++){
+ctx.beginPath();
+ctx.moveTo(cx + 42, cy + cardH - 84 + ln * 52);
+ctx.lineTo(cx + cardW - 42, cy + cardH - 84 + ln * 52);
+ctx.stroke();
+}
+});
+ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign = "right";
+ctx.fillText(`覆面算パズル ワークシート ${pi + 1} / ${cardPages + 1}`, A4W - 110, A4H - 55);
+pages.push(cv);
+}
+// 解答ページ
+{
+const cv = document.createElement("canvas");
+cv.width = A4W; cv.height = A4H;
+const ctx = cv.getContext("2d");
+ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, A4W, A4H);
+ctx.fillStyle = "#26241f"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+ctx.font = "900 74px sans-serif";
+ctx.fillText("覆面算パズル", 130, 130);
+ctx.font = "500 42px sans-serif"; ctx.fillStyle = "#666";
+ctx.fillText("どの問題も、答えは1通りだけです。", 130, 215);
+let y = 330;
+PUZZLES.forEach(p => {
+ctx.fillStyle = "#33308f"; ctx.font = "900 50px sans-serif";
+ctx.fillText(`${p.level}　${p.title}`, 140, y);
+y += 78;
+ctx.fillStyle = "#1e6e3e"; ctx.font = "900 58px sans-serif";
+const numEq = p.op === "mul"
+? `${wordValWith(p.word, p.sol)} × ${p.k} = ${wordValWith(p.result, p.sol)}`
+: `${p.terms.map(w => wordValWith(w, p.sol)).join(" + ")} = ${wordValWith(p.result, p.sol)}`;
+ctx.fillText(numEq, 180, y);
+y += 72;
+ctx.fillStyle = "#444"; ctx.font = "500 42px sans-serif";
+ctx.fillText(Object.keys(p.sol).sort().map(L => `${L} = ${p.sol[L]}`).join("、　"), 180, y);
+y += 108;
+});
+ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign = "right";
+ctx.fillText(`覆面算パズル ワークシート ${cardPages + 1} / ${cardPages + 1}（解答）`, A4W - 110, A4H - 55);
+pages.push(cv);
+}
+return pages;
+}
+function jpegBytes(dataURL){
+const b64 = dataURL.split(",")[1];
+const bin = atob(b64);
+const arr = new Uint8Array(bin.length);
+for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+return arr;
+}
+function buildPDF(canvases){
+const W = 595.28, H = 841.89;
+const enc = new TextEncoder();
+const chunks = [];
+let size = 0;
+const offsets = [];
+const push = data => { chunks.push(data); size += data.length;};
+const pushStr = s => push(enc.encode(s));
+pushStr("%PDF-1.4\n");
+const nPages = canvases.length;
+// obj 1: Catalog, 2: Pages, then per page: Page, Contents, Image
+const imgObjs = canvases.map(cv => jpegBytes(cv.toDataURL("image/jpeg", 0.88)));
+const total = 2 + nPages * 3;
+offsets.length = total + 1;
+const beginObj = n => { offsets[n] = size; pushStr(`${n} 0 obj\n`);};
+beginObj(1); pushStr("<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+beginObj(2);
+const kids = canvases.map((_, i) => `${3 + i * 3} 0 R`).join(" ");
+pushStr(`<< /Type /Pages /Kids [${kids}] /Count ${nPages} >>\nendobj\n`);
+canvases.forEach((cv, i) => {
+const pageObj = 3 + i * 3, contObj = pageObj + 1, imgObj = pageObj + 2;
+beginObj(pageObj);
+pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${imgObj} 0 R >> >> /Contents ${contObj} 0 R >>\nendobj\n`);
+const content = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
+beginObj(contObj);
+pushStr(`<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
+beginObj(imgObj);
+pushStr(`<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imgObjs[i].length} >>\nstream\n`);
+push(imgObjs[i]);
+pushStr("\nendstream\nendobj\n");
+});
+const xrefPos = size;
+let xref = `xref\n0 ${total + 1}\n0000000000 65535 f \n`;
+for (let n = 1; n <= total; n++) xref += String(offsets[n]).padStart(10, "0") + " 00000 n \n";
+pushStr(xref + `trailer\n<< /Size ${total + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+return new Blob(chunks, { type: "application/pdf"});
+}
+function openWorksheet(){
+const modal = $("ws-modal");
+modal.style.display = "block";
+if (!wsCache){
+const canvases = buildWorksheetPages();
+const pages = canvases.map(cv => cv.toDataURL("image/jpeg", 0.88));
+const pdfBlob = buildPDF(canvases);
+wsCache = { pages, pdfBlob};
+const host = $("ws-pages");
+host.innerHTML = "";
+pages.forEach((src, i) => {
+const img = document.createElement("img");
+img.src = src;
+img.alt = `ワークシート ${i + 1} ページ目`;
+host.appendChild(img);
+});
+}
+$("ws-desc").textContent = `全 ${wsCache.pages.length} ページ（問題カード ${wsCache.pages.length - 1} ページ＋解答 1 ページ）を作りました。`;
+window.scrollTo(0, 0);
+}
+async function shareWorksheet(){
+if (!wsCache) return;
+const file = new File([wsCache.pdfBlob], "fukumenzan-worksheet.pdf", { type: "application/pdf"});
+if (navigator.canShare && navigator.canShare({ files: [file]})){
+try { await navigator.share({ files: [file], title: "覆面算パズル ワークシート"}); return;}
+catch(e){ if (e && e.name === "AbortError") return;}
+}
+const url = URL.createObjectURL(wsCache.pdfBlob);
+const a = document.createElement("a");
+a.href = url; a.download = "fukumenzan-worksheet.pdf";
+document.body.appendChild(a); a.click(); a.remove();
+setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function printWorksheet(){
+const w = window.open("", "_blank");
+if (!w){ alert("ポップアップがブロックされました。ブラウザの設定で許可してください。"); return;}
+const imgs = wsCache.pages.map(src => `<img src="${src}">`).join("");
+w.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>覆面算パズル ワークシート</title>
+<style>@page{size:A4;margin:0} body{margin:0} img{width:210mm;height:297mm;display:block;page-break-after:always}</style></head>
+<body>${imgs}<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script></body></html>`);
+w.document.close();
+}
+
+/* ================= 初期化 ================= */
+$("btn-back").addEventListener("click", showTitle);
+$("btn-check").addEventListener("click", doCheck);
+$("btn-hint").addEventListener("click", openHint);
+$("btn-reset").addEventListener("click", () => {
+if (!cur) return;
+cur.assign = {}; cur.hintedLetters = new Set(); cur.finished = false;
+$("answer-box").style.display = "none";
+setMsg("", "");
+renderPlay();
+});
+$("btn-answer").addEventListener("click", viewAnswer);
+$("btn-worksheet").addEventListener("click", () => { ensureAudio(); openWorksheet();});
+$("btn-worksheet2").addEventListener("click", () => { ensureAudio(); openWorksheet();});
+$("btn-ws-close").addEventListener("click", () => { $("ws-modal").style.display = "none";});
+$("btn-ws-share").addEventListener("click", shareWorksheet);
+$("btn-ws-print").addEventListener("click", printWorksheet);
+renderTitle();
+
+// テスト用フック
+window.__fuku = { PUZZLES, openPuzzle, get cur(){ return cur;}, buildWorksheetPages, buildPDF};
+</script>
+</body>
+</html>
