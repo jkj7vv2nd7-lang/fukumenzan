@@ -12,6 +12,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="覆面算パズル">
 <meta name="theme-color" content="#2b2a6e">
+<meta property="og:title" content="覆面算パズル ― 文字に数字を当てはめよう">
+<meta property="og:description" content="SEND + MORE = MONEY など、文字に0〜9の数字を当てはめる覆面算。文字を選んで数字をタップ、当たると覆面が外れる探偵ゲーム。印刷用ワークシートつき。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jkj7vv2nd7-lang.github.io/fukumenzan/">
+<meta property="og:image" content="https://jkj7vv2nd7-lang.github.io/fukumenzan/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html { font-size:16px;}
@@ -86,20 +92,41 @@ border:2px solid #e8dcb0;
 }
 .uniq { text-align:right; font-size:.76rem; color:#8a7f5c; font-weight:700;}
 .eq { margin:8px auto 2px; width:fit-content; max-width:100%;}
-.eq-row { display:flex; align-items:flex-end; justify-content:flex-end; gap:5px;}
-.eq-row.op { font-size:1.5rem; font-weight:900; color:#6a3fb5; width:1.2em; text-align:center; padding-bottom:14px;}
+.eq-row { display:flex; align-items:center; justify-content:flex-end; gap:5px;}
+.eq-row.op { font-size:1.5rem; font-weight:900; color:#6a3fb5; width:1.2em; text-align:center;}
 .eq-row.spacer { width:1.2em;}
 .cell {
-width:52px; text-align:center; border-radius:10px; padding:5px 0 4px; cursor:pointer;
-border:2px solid transparent; transition:background.1s, border-color.1s;
+width:52px; height:60px; border-radius:12px; position:relative; cursor:pointer; flex:none;
+display:flex; align-items:center; justify-content:center;
+border:2.5px solid #4a3f8f; background:linear-gradient(160deg,#5a4fb0,#3a2f7d);
+box-shadow:0 3px 0 #2a215e; transition:border-color.12s, box-shadow.12s, background.15s;
 }
-.cell.d { font-size:1.62rem; font-weight:900; line-height:1.15; color:#26241f; min-height:1.15em; font-family:"Hiragino Sans","Noto Sans JP",sans-serif;}
-.cell.d.empty { color:#c9c2a8;}
-.cell.l { font-size:.86rem; font-weight:900; color:#6a3fb5; letter-spacing:.05em; border-top:2px solid #e8dcb0; margin:2px 6px 0; padding-top:2px;}
-.cell.sel { background:#fdf0bd; border-color:#f5c542;}
-.cell.hinted.d { color:#2e7d9e;}
-.cell.flash { animation:flash.6s;}
-@keyframes flash { 0%{background:#b7f0c8} 100%{background:transparent}}
+.cell .cl { font-size:1.55rem; font-weight:900; color:#fdf6d8; line-height:1;}
+.cell.sel { border-color:#f5c542; box-shadow:0 0 0 3px rgba(245,197,66,.55), 0 3px 0 #2a215e;}
+.cell.open { background:#fffdf4; border-color:#2e9e5b; box-shadow:0 3px 0 #b9d9c2; cursor:default;}
+.cell.open .cd { font-size:1.62rem; font-weight:900; color:#26241f; line-height:1; font-family:"Hiragino Sans","Noto Sans JP",sans-serif;}
+.cell.open .cm { position:absolute; top:2px; right:5px; font-size:.62rem; font-weight:900; color:#6a3fb5;}
+.cell.open.hinted { border-color:#2e7d9e;}
+.cell.open.hinted .cd { color:#2e7d9e;}
+.cell.fixed { background:#fffdf4; border-color:#d8cf9f; box-shadow:none; cursor:default;}
+.cell.fixed .cd { font-size:1.62rem; font-weight:900; color:#26241f; line-height:1;}
+.cell.pop { animation:pop.45s ease;}
+@keyframes pop { 0%{transform:scale(1)} 35%{transform:scale(1.22) rotate(-3deg)} 100%{transform:scale(1)}}
+.cell.shake, .chip.shake { animation:shake.4s;}
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}}
+.step-label { margin-top:14px; font-size:.82rem; font-weight:900; color:#6a3fb5; letter-spacing:.05em;}
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
+.chip {
+min-width:54px; padding:8px 4px 6px; border-radius:12px; text-align:center; cursor:pointer;
+border:2.5px solid #4a3f8f; background:linear-gradient(160deg,#5a4fb0,#3a2f7d);
+color:#fdf6d8; font-size:1.25rem; font-weight:900; box-shadow:0 3px 0 #2a215e; line-height:1.1;
+}
+.chip small { display:block; font-size:.6rem; font-weight:900; opacity:.8; margin-top:2px;}
+.chip.sel { border-color:#f5c542; box-shadow:0 0 0 3px rgba(245,197,66,.55), 0 3px 0 #2a215e;}
+.chip.open { background:#eafaf0; border-color:#2e9e5b; color:#1e6e3e; box-shadow:0 3px 0 #b9d9c2; cursor:default;}
+.chip.open small { color:#6a3fb5; opacity:1;}
+.prog { text-align:center; margin-top:10px; font-size:.88rem; font-weight:900; color:#4d4630;}
+.prog b { color:#33308f;}
 .eq-line { border-top:3.5px solid #26241f; margin:7px 0 7px auto;}
 .calc-bar {
 margin-top:12px; background:#f2ecd4; border-radius:10px; padding:9px 12px; font-size:.92rem;
@@ -148,7 +175,8 @@ padding:12px 14px; text-align:center; line-height:1.8;
 .ws-btns button { flex:1; min-width:140px; border-radius:12px; padding:13px 8px; font-weight:900;}
 #confetti { position:fixed; inset:0; pointer-events:none; z-index:80; display:none;}
 @media (max-width:520px) {
-.cell { width:44px;}.cell.d { font-size:1.35rem;}
+.cell { width:44px; height:52px;}.cell .cl { font-size:1.3rem;}.cell.open .cd, .cell.fixed .cd { font-size:1.35rem;}
+.chip { min-width:47px; font-size:1.1rem;}
 .hero h1 { font-size:1.9rem;}.sample-eq { font-size:1.05rem;}
 }
 </style>
@@ -167,7 +195,11 @@ padding:12px 14px; text-align:center; line-height:1.8;
 <div class="sample-eq">SEND + MORE = MONEY<small>いちばん有名な覆面算。答えは 9567 + 1085 = 10652</small></div>
 </div>
 <div class="rules">
-<b>あそびかた</b>　・同じ文字には同じ数字、ちがう文字にはちがう数字が入ります。・いちばん先頭の文字には 0 は入りません。・文字をタップして、数字パッドから数字を入れてください。「答え合わせ」で式が成り立つか確かめられます。・困ったら段階ヒント。ヒントを全部開くと「答えを見る」も使えます。
+<b>あそびかた</b><br>
+① 同じ文字には同じ数字、ちがう文字にはちがう数字が入ります。<br>
+② いちばん先頭の文字に 0 は入りません。<br>
+③ まず文字を1つ選び、数字をタップします。当たると、その文字の覆面がパッと外れて、数字が現れます。<br>
+④ 全部の文字の覆面が外れたら解決です。まちがえても大丈夫、何度でも挑戦できます。困ったら、下の「ヒント」が少しずつ手がかりをくれます（ヒントを全部開くと「答えを見る」も使えます）。
 </div>
 <div id="level-sections"></div>
 <div class="title-actions">
@@ -188,9 +220,12 @@ padding:12px 14px; text-align:center; line-height:1.8;
 <div class="eq" id="eq"></div>
 <div class="calc-bar" id="calc-bar"></div>
 <div class="msg" id="msg"></div>
+<div class="prog" id="prog"></div>
+<div class="step-label">① もじを えらぶ</div>
+<div class="chips" id="chips"></div>
+<div class="step-label">② すうじを タップ</div>
 <div class="pad" id="pad"></div>
 <div class="actions">
-<button class="btn-check" id="btn-check">✔ 答え合わせ</button>
 <button class="btn-sub" id="btn-hint">💡 ヒント</button>
 <button class="btn-sub" id="btn-reset">↺ リセット</button>
 </div>
@@ -339,6 +374,7 @@ const sndErase = () => { tone(330, 0.08, "sine", 0.10);};
 const sndHint = () => { tone(523.25, 0.12, "sine", 0.14); tone(783.99, 0.16, "sine", 0.14, 0.1);};
 const sndBad = () => { tone(160, 0.22, "square", 0.10); tone(120, 0.28, "square", 0.10, 0.12);};
 const sndFanfare = () => { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.34, "triangle", 0.22, i * 0.13)); tone(1318.5, 0.5, "triangle", 0.18, 0.55);};
+const sndGood = () => { tone(880, 0.12, "sine", 0.16); tone(1174.66, 0.16, "sine", 0.16, 0.09); tone(1567.98, 0.24, "sine", 0.12, 0.18);};
 
 /* ================= 紙吹雪 ================= */
 function confetti(){
@@ -431,7 +467,7 @@ return s;
 }
 function openPuzzle(id){
 const p = PUZZLES.find(x => x.id === id);
-cur = { p, assign: {}, selected: null, hintsOpen: 0, finished: false, hintedLetters: new Set()};
+cur = { p, assign: {}, open: new Set(), mistakes: 0, selected: null, hintsOpen: 0, finished: false, hintedLetters: new Set()};
 $("screen-title").style.display = "none";
 $("screen-play").style.display = "block";
 $("play-title").textContent = p.title;
@@ -439,7 +475,7 @@ $("play-level").textContent = p.level;
 $("play-uniq").textContent = "答えは1通りだけです";
 $("answer-box").style.display = "none";
 $("hint-area").innerHTML = "";
-setMsg("", "");
+setMsg("もじを えらんで、すうじを タップしてみよう。当たると覆面が外れるよ。", "info");
 const letters = puzzleLetters(p);
 cur.selected = letters[0];
 renderPlay();
@@ -454,17 +490,20 @@ v = v * 10 + cur.assign[ch];
 return v;
 }
 function wordShown(w){
-return [...w].map(ch => cur.assign[ch] == null? "？": String(cur.assign[ch])).join("");
+return [...w].map(ch => cur.open.has(ch)? String(cur.assign[ch]): ch).join("");
 }
 function renderPlay(){
-renderEq(); renderPad(); renderCalc(); renderHintBtn();
+renderEq(); renderChips(); renderPad(); renderCalc(); renderHintBtn();
 }
 function cellHTML(ch){
-const d = cur.assign[ch];
-const cls = ["cell"];
-if (cur.selected === ch) cls.push("sel");
+if (cur.open.has(ch)){
+const cls = ["cell", "open"];
 if (cur.hintedLetters.has(ch)) cls.push("hinted");
-return `<div class="${cls.join(" ")}" data-letter="${ch}"><div class="d ${d == null? "empty": ""}">${d == null? "?": d}</div><div class="l">${ch}</div></div>`;
+return `<div class="${cls.join(" ")}" data-letter="${ch}"><div class="cd">${cur.assign[ch]}</div><div class="cm">${ch}</div></div>`;
+}
+const cls = ["cell", "masked"];
+if (cur.selected === ch) cls.push("sel");
+return `<div class="${cls.join(" ")}" data-letter="${ch}"><div class="cl">${ch}</div></div>`;
 }
 function renderEq(){
 const p = cur.p, host = $("eq");
@@ -477,7 +516,7 @@ return `<div class="eq-row">${opHtml}${cells}</div>`;
 if (p.op === "mul"){
 rows += rowOf(p.word, "");
 const kCells = [...String(p.k)].map(dg =>
-`<div class="cell" style="cursor:default"><div class="d">${dg}</div><div class="l">&nbsp;</div></div>`).join("");
+`<div class="cell fixed"><div class="cd">${dg}</div></div>`).join("");
 rows += `<div class="eq-row"><div class="op">×</div>${kCells}</div>`;
 } else {
 p.terms.forEach((w, i) => { rows += rowOf(w, i === 0? "": "+");});
@@ -490,10 +529,12 @@ rows += rowOf(p.result, "");
 host.innerHTML = rows;
 host.querySelectorAll(".cell[data-letter]").forEach(el => {
 el.addEventListener("click", () => {
+const L = el.dataset.letter;
+if (cur.open.has(L) || cur.finished) return;
 ensureAudio();
-cur.selected = el.dataset.letter;
+cur.selected = L;
 sndTap();
-renderEq(); renderPad();
+renderEq(); renderChips(); renderPad();
 });
 });
 }
@@ -502,6 +543,27 @@ const m = {};
 for (const [L, d] of Object.entries(cur.assign)) m[d] = L;
 return m;
 }
+function renderChips(){
+const host = $("chips");
+const letters = puzzleLetters(cur.p);
+host.innerHTML = letters.map(L => {
+if (cur.open.has(L)) return `<button class="chip open" data-chip="${L}">${cur.assign[L]}<small>${L}</small></button>`;
+const sel = cur.selected === L? " sel": "";
+return `<button class="chip${sel}" data-chip="${L}">${L}<small>覆面</small></button>`;
+}).join("");
+host.querySelectorAll(".chip").forEach(c => {
+c.addEventListener("click", () => {
+const L = c.dataset.chip;
+if (cur.open.has(L) || cur.finished) return;
+ensureAudio();
+cur.selected = L;
+sndTap();
+renderEq(); renderChips(); renderPad();
+});
+});
+const left = letters.filter(L => !cur.open.has(L)).length;
+$("prog").innerHTML = `覆面 のこり <b>${left}</b> 文字 ・ ミス <b>${cur.mistakes}</b> 回`;
+}
 function renderPad(){
 const pad = $("pad");
 const used = usedBy();
@@ -509,27 +571,46 @@ const lead = leadingLetters(cur.p);
 let html = "";
 for (let d = 0; d <= 9; d++){
 const owner = used[d];
-const isCur = owner === cur.selected;
-const dis = (owner &&!isCur) || (d === 0 && lead.has(cur.selected));
-html += `<button data-digit="${d}" ${dis? "disabled": ""} class="${isCur? "cur": ""}">${d}${owner? `<span class="who">${owner}</span>`: ""}</button>`;
+const dis = !!owner || (d === 0 && cur.selected && lead.has(cur.selected)) || !cur.selected || cur.finished;
+html += `<button data-digit="${d}" ${dis? "disabled": ""}>${d}${owner? `<span class="who">${owner}</span>`: ""}</button>`;
 }
-html += `<button class="erase" id="pad-erase">けす</button>`;
 pad.innerHTML = html;
 pad.querySelectorAll("button[data-digit]").forEach(b => {
-b.addEventListener("click", () => {
+b.addEventListener("click", () => judgeDigit(Number(b.dataset.digit)));
+});
+}
+function judgeDigit(d){
+const L = cur.selected;
+if (!L || cur.open.has(L) || cur.finished) return;
 ensureAudio();
-const d = Number(b.dataset.digit);
-if (!cur.selected) return;
-if (cur.assign[cur.selected] === d){ delete cur.assign[cur.selected]; sndErase();}
-else { cur.assign[cur.selected] = d; sndTap();}
-cur.finished = false;
+if (d === cur.p.sol[L]){
+cur.assign[L] = d;
+cur.open.add(L);
+sndGood();
+const letters = puzzleLetters(cur.p);
+const next = letters.find(x => !cur.open.has(x));
+cur.selected = next || null;
 renderPlay();
-});
-});
-$("pad-erase").addEventListener("click", () => {
-ensureAudio();
-if (cur.selected && cur.assign[cur.selected]!= null){ delete cur.assign[cur.selected]; sndErase(); renderPlay();}
-});
+document.querySelectorAll(`.cell[data-letter="${L}"]`).forEach(el => el.classList.add("pop"));
+if (!next) solveComplete();
+else setMsg(`やった！ ${L} の覆面が外れた！`, "ok");
+} else {
+cur.mistakes++;
+sndBad();
+renderPlay();
+document.querySelectorAll(`.cell[data-letter="${L}"]`).forEach(el => el.classList.add("shake"));
+const chip = document.querySelector(`.chip[data-chip="${L}"]`);
+if (chip) chip.classList.add("shake");
+setMsg(`ちがうみたい… ${L} に入る数字を、もう一度考えてみよう。`, "ng");
+}
+}
+function solveComplete(){
+cur.finished = true;
+setMsg(cur.mistakes === 0? "🎉 せいかい！ ノーミスで事件解決！" : `🎉 せいかい！ 式が成り立ったよ。事件解決！（ミス ${cur.mistakes} 回）`, "ok");
+sndFanfare(); confetti();
+showAnswer(false);
+const rec = loadRec();
+if (rec[cur.p.id]!== "solved"){ rec[cur.p.id] = "solved"; saveRec(rec);}
 }
 function renderCalc(){
 const p = cur.p;
@@ -581,12 +662,13 @@ if (h.t === "text"){
 div.innerHTML = `<b>ヒント${cur.hintsOpen}</b>　${h.text}`;
 } else {
 const L = h.letter, d = p.sol[L];
-// その数字を別の文字が使っていたら外す
-for (const [oL, oD] of Object.entries(cur.assign)) if (oD === d && oL!== L) delete cur.assign[oL];
 cur.assign[L] = d;
+cur.open.add(L);
 cur.hintedLetters.add(L);
-div.innerHTML = `<b>ヒント${cur.hintsOpen}</b>　文字 <b>${L}</b> は <b>${d}</b> だよ。式に入れておいたよ。`;
-renderEq(); renderPad(); renderCalc();
+if (cur.selected === L) cur.selected = puzzleLetters(p).find(x => !cur.open.has(x)) || null;
+div.innerHTML = `<b>ヒント${cur.hintsOpen}</b>　文字 <b>${L}</b> は <b>${d}</b> だよ。覆面を外しておいたよ。`;
+renderEq(); renderChips(); renderPad(); renderCalc();
+if (puzzleLetters(p).every(x => cur.open.has(x))) solveComplete();
 }
 $("hint-area").appendChild(div);
 renderHintBtn();
@@ -601,34 +683,13 @@ $("answer-map").textContent = Object.keys(p.sol).sort().map(L => `${L} = ${p.sol
 $("answer-box").style.display = "block";
 }
 function wordValWith(w, sol){ return [...w].map(ch => sol[ch]).join("");}
-function doCheck(){
-ensureAudio();
-const p = cur.p;
-const letters = puzzleLetters(p);
-if (letters.some(L => cur.assign[L] == null)){
-setMsg("まだ空いている文字があるよ。全部の文字に数字を入れてね。", "info");
-sndBad();
-return;
-}
-const lhs = p.op === "mul"? wordVal(p.word) * p.k: p.terms.map(wordVal).reduce((a, b) => a + b, 0);
-const rhs = wordVal(p.result);
-if (lhs === rhs){
-cur.finished = true;
-setMsg("🎉 せいかい！ 式が成り立ったよ。事件解決！", "ok");
-sndFanfare(); confetti();
-showAnswer(false);
-const rec = loadRec();
-if (rec[p.id]!== "solved"){ rec[p.id] = "solved"; saveRec(rec);}
-} else {
-setMsg(`ざんねん、まだ成り立っていないよ。左は ${lhs}、右は ${rhs} だね。`, "ng");
-sndBad();
-}
-}
 function viewAnswer(){
 if (cur.hintsOpen < cur.p.hints.length) return;
 if (!confirm("答えを見ますか？（この問題は「答えを見た」印がつきます）")) return;
 ensureAudio();
 cur.assign = {...cur.p.sol};
+cur.open = new Set(puzzleLetters(cur.p));
+cur.selected = null;
 cur.finished = true;
 showAnswer(true);
 setMsg("答えを表示しました。数字の当てはめ方を確かめてみてね。", "info");
@@ -898,13 +959,13 @@ w.document.close();
 
 /* ================= 初期化 ================= */
 $("btn-back").addEventListener("click", showTitle);
-$("btn-check").addEventListener("click", doCheck);
 $("btn-hint").addEventListener("click", openHint);
 $("btn-reset").addEventListener("click", () => {
 if (!cur) return;
-cur.assign = {}; cur.hintedLetters = new Set(); cur.finished = false;
+cur.assign = {}; cur.open = new Set(); cur.mistakes = 0; cur.hintedLetters = new Set(); cur.finished = false;
+cur.selected = puzzleLetters(cur.p)[0];
 $("answer-box").style.display = "none";
-setMsg("", "");
+setMsg("もじを えらんで、すうじを タップしてみよう。当たると覆面が外れるよ。", "info");
 renderPlay();
 });
 $("btn-answer").addEventListener("click", viewAnswer);
